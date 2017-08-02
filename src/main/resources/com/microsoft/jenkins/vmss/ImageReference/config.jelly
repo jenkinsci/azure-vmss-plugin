@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (c) Microsoft Corporation. All rights reserved.
+  ~ Licensed under the MIT License. See License.txt in the project root for
+  ~ license information.
+  -->
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+    <f:radioBlock name="imageType" value="official" title="${%Image_Type_Official}" checked="${!instance.isCustomImage()}" inline="true">
+        <f:entry title="${%Publisher}" field="publisher">
+            <f:textbox />
+        </f:entry>
+
+        <f:entry title="${%Offer}" field="offer">
+            <f:textbox />
+        </f:entry>
+
+        <f:entry title="${%SKU}" field="sku">
+            <f:textbox />
+        </f:entry>
+
+        <f:entry title="${%Version}" field="version">
+            <f:textbox />
+        </f:entry>
+    </f:radioBlock>
+
+    <f:radioBlock name="imageType" value="custom" title="${%Image_Type_Custom}" checked="${instance.isCustomImage()}" inline="true">
+        <f:entry title="${%Id}" field="id">
+            <f:textbox />
+        </f:entry>
+    </f:radioBlock>
+</j:jelly>
