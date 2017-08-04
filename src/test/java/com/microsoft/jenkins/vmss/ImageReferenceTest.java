@@ -26,7 +26,6 @@ public class ImageReferenceTest {
         Assert.assertNull(imageReference.getOffer());
         Assert.assertNull(imageReference.getSku());
         Assert.assertNull(imageReference.getVersion());
-        Assert.assertTrue(imageReference.isCustomImage());
 
         final EnvVars env = new EnvVars("id", "2");
         imageReference.apply(azureImageReference, env);
@@ -58,7 +57,6 @@ public class ImageReferenceTest {
         Assert.assertEquals("WindowsServer", imageReference.getOffer());
         Assert.assertEquals("2012-R2-Datacenter", imageReference.getSku());
         Assert.assertEquals("${version}", imageReference.getVersion());
-        Assert.assertFalse(imageReference.isCustomImage());
 
         final EnvVars env = new EnvVars("version", "latest");
         imageReference.apply(azureImageReference, env);
@@ -68,5 +66,34 @@ public class ImageReferenceTest {
         Assert.assertEquals("WindowsServer", azureImageReference.offer());
         Assert.assertEquals("2012-R2-Datacenter", azureImageReference.sku());
         Assert.assertEquals("latest", azureImageReference.version());
+    }
+
+    @Test
+    public void inferImageTypeFromOnlineProfile() {
+        final ImageReferenceInner azureImageReference = new ImageReferenceInner();
+        azureImageReference.withId("image-1");
+
+        // All fields are set. Should infer image type from online profile
+        final ImageReference imageReference = new ImageReference();
+        imageReference.setId("image-2");
+        imageReference.setPublisher("MicrosoftWindowsServer");
+        imageReference.setOffer("WindowsServer");
+        imageReference.setSku("2012-R2-Datacenter");
+        imageReference.setVersion("${version}");
+
+        Assert.assertEquals("image-2", imageReference.getId());
+        Assert.assertEquals("MicrosoftWindowsServer", imageReference.getPublisher());
+        Assert.assertEquals("WindowsServer", imageReference.getOffer());
+        Assert.assertEquals("2012-R2-Datacenter", imageReference.getSku());
+        Assert.assertEquals("${version}", imageReference.getVersion());
+
+        final EnvVars env = new EnvVars();
+        imageReference.apply(azureImageReference, env);
+
+        Assert.assertEquals("image-2", azureImageReference.id());
+        Assert.assertNull(azureImageReference.publisher());
+        Assert.assertNull(azureImageReference.offer());
+        Assert.assertNull(azureImageReference.sku());
+        Assert.assertNull(azureImageReference.version());
     }
 }

@@ -9,6 +9,8 @@ package com.microsoft.jenkins.vmss;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachineScaleSet;
 import com.microsoft.azure.management.compute.implementation.ImageReferenceInner;
+import com.microsoft.azure.util.AzureCredentials;
+import com.microsoft.jenkins.vmss.util.TokenCache;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -16,9 +18,11 @@ import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -96,6 +100,25 @@ public class UpdateBuilder extends BaseBuilder {
         public ListBoxModel doFillNameItems(@QueryParameter final String azureCredentialsId,
                                             @QueryParameter final String resourceGroup) {
             return listVMSSItems(azureCredentialsId, resourceGroup);
+        }
+
+        @JavaScriptMethod
+        public boolean isCustomImage(final String azureCredentialsId,
+                                     final String resourceGroup,
+                                     final String name) {
+            if (StringUtils.isNotBlank(azureCredentialsId)
+                    && StringUtils.isNotBlank(resourceGroup)
+                    && StringUtils.isNotBlank(name)) {
+                final Azure azure = TokenCache.getInstance(AzureCredentials.getServicePrincipal(azureCredentialsId))
+                        .getAzureClient();
+                final VirtualMachineScaleSet vmss = azure.virtualMachineScaleSets()
+                        .getByResourceGroup(resourceGroup, name);
+                if (vmss == null) {
+                    return false;
+                }
+                return StringUtils.isNotBlank(vmss.storageProfile().imageReference().id());
+            }
+            return false;
         }
     }
 

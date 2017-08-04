@@ -10,12 +10,21 @@
     </f:entry>
 
     <f:entry title="${%Resource_Group_Name}" field="resourceGroup">
-        <f:select/>
+        <f:select clazz="select-azure-vmss-resource-group" />
     </f:entry>
 
     <f:entry title="${%Name}" field="name">
-        <f:select/>
+        <f:select clazz="select-azure-vmss-name" />
     </f:entry>
 
+    <f:block>
+        <img src="${imagesURL}/spinner.gif" class="azure-vmss-spinner" style="float:right;display:none" />
+    </f:block>
+
     <f:property field="imageReference" />
+
+    <st:once>
+        <script>var azureVMSSUpdateBuilderDescriptor = <st:bind value="${descriptor}" />;</script>
+        <script src="${rootURL}/plugin/azure-vmss/scripts/update-builder.js"/>
+    </st:once>
 </j:jelly>

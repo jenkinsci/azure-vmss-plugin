@@ -67,12 +67,8 @@ public class ImageReference implements Describable<ImageReference> {
         this.version = version;
     }
 
-    public boolean isCustomImage() {
-        return StringUtils.isNotBlank(id);
-    }
-
     public ImageReferenceInner apply(final ImageReferenceInner azureImageRef, final EnvVars env) {
-        if (StringUtils.isNotBlank(id)) {
+        if (StringUtils.isNotBlank(azureImageRef.id())) {
             azureImageRef.withId(env.expand(id));
         } else {
             azureImageRef
