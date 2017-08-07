@@ -87,10 +87,7 @@
         <module name="MemberName"/>
         <module name="MethodName"/>
         <module name="PackageName"/>
-        <module name="ParameterName">
-            <!-- we allow _ in the parameters as we prefix was_ to some of the query parameters -->
-            <property name="format" value="^[a-z][a-zA-Z0-9_]*$" />
-        </module>
+        <module name="ParameterName"/>
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
 

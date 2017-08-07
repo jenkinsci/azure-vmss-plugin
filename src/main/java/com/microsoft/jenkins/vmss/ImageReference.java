@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for
+ * license information.
+ */
+
 package com.microsoft.jenkins.vmss;
 
 import com.microsoft.azure.management.compute.implementation.ImageReferenceInner;
@@ -69,7 +75,7 @@ public class ImageReference implements Describable<ImageReference> {
 
     public ImageReferenceInner apply(final ImageReferenceInner azureImageRef, final EnvVars env) {
         if (StringUtils.isNotBlank(azureImageRef.id())) {
-            azureImageRef.withId(env.expand(id));
+            azureImageRef.withId(env.expand(Util.fixNull(id)));
         } else {
             azureImageRef
                     .withPublisher(env.expand(Util.fixNull(publisher)))
