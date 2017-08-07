@@ -43,12 +43,15 @@ public class UpdateInstancesBuilder extends BaseBuilder {
 
         listener.getLogger().println(Messages.UpdateInstancesBuilder_PerformLogStart());
 
-        listener.getLogger().println(Messages.UpdateInstancesBuilder_PerformLogInstanceIDs(instanceIds.toString()));
+        final String resolvedInstanceIds = run.getEnvironment(listener).expand(instanceIds);
+
+        listener.getLogger().println(Messages.UpdateInstancesBuilder_PerformLogInstanceIDs(
+                resolvedInstanceIds.toString()));
 
         final Azure azure = getAzureClient();
 
         azure.virtualMachineScaleSets().inner().updateInstances(
-                getResourceGroup(), getName(), parseInstanceIds(instanceIds));
+                getResourceGroup(), getName(), parseInstanceIds(resolvedInstanceIds));
 
         listener.getLogger().println(Messages.UpdateInstancesBuilder_PerformLogSuccess());
     }

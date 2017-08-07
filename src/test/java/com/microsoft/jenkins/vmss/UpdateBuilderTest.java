@@ -7,7 +7,6 @@
 package com.microsoft.jenkins.vmss;
 
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.compute.StorageProfile;
 import com.microsoft.azure.management.compute.VirtualMachineScaleSet;
 import com.microsoft.azure.management.compute.VirtualMachineScaleSetStorageProfile;
 import com.microsoft.azure.management.compute.VirtualMachineScaleSetVMProfile;
@@ -32,7 +31,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -75,6 +73,7 @@ public class UpdateBuilderTest {
 
         final UpdateBuilder builder = new UpdateBuilder("cid", "rg", "name", imageReference);
         final ImageReferenceInner azureImageReference = mock(ImageReferenceInner.class);
+        when(azureImageReference.id()).thenReturn("id-old");
         final Azure azure = mockAzure(azureImageReference);
         builder.setAzureClientFactory(new BaseBuilder.AzureClientFactory() {
             @Override

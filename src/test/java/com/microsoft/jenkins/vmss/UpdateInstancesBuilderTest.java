@@ -15,6 +15,7 @@ import com.microsoft.azure.management.compute.implementation.ImageReferenceInner
 import com.microsoft.azure.management.compute.implementation.VirtualMachineScaleSetInner;
 import com.microsoft.azure.management.compute.implementation.VirtualMachineScaleSetsInner;
 import edu.emory.mathcs.backport.java.util.Arrays;
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
@@ -54,7 +55,9 @@ public class UpdateInstancesBuilderTest {
 
     @Test
     public void perform() throws IOException, InterruptedException {
-        final UpdateInstancesBuilder builder = new UpdateInstancesBuilder("cid", "rg", "name", "1,2,3");
+        final UpdateInstancesBuilder builder = new UpdateInstancesBuilder(
+                "cid", "rg", "name",
+                "1,2,3,${IDS}");
         final Azure azure = mockAzure();
         builder.setAzureClientFactory(new BaseBuilder.AzureClientFactory() {
             @Override
@@ -67,6 +70,8 @@ public class UpdateInstancesBuilderTest {
         final FilePath workspace = new FilePath(this.workspace.getRoot());
         final Launcher launcher = mock(Launcher.class);
         final TaskListener listener = mock(TaskListener.class);
+        final EnvVars envVars = new EnvVars("IDS", "4,5");
+        when(run.getEnvironment(listener)).thenReturn(envVars);
         when(listener.getLogger()).thenReturn(System.out);
 
         builder.perform(run, workspace, launcher, listener);
@@ -74,6 +79,6 @@ public class UpdateInstancesBuilderTest {
         final ArgumentCaptor<List<String>> instanceIdsArg = ArgumentCaptor.forClass(List.class);
         verify(azure.virtualMachineScaleSets().inner()).updateInstances(
                 eq("rg"), eq("name"), instanceIdsArg.capture());
-        Assert.assertEquals(Arrays.asList(new String[]{"1", "2", "3"}), instanceIdsArg.getValue());
+        Assert.assertEquals(Arrays.asList(new String[]{"1", "2", "3", "4", "5"}), instanceIdsArg.getValue());
     }
 }
