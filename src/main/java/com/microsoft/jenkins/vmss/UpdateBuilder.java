@@ -10,11 +10,12 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachineScaleSet;
 import com.microsoft.azure.management.compute.implementation.ImageReferenceInner;
 import com.microsoft.azure.util.AzureCredentials;
-import com.microsoft.jenkins.vmss.util.TokenCache;
+import com.microsoft.jenkins.vmss.util.AzureUtils;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Item;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
@@ -57,8 +58,13 @@ public class UpdateBuilder extends BaseBuilder {
 
         final VirtualMachineScaleSet vmss = azure.virtualMachineScaleSets().getByResourceGroup(
                 getResourceGroup(), getName());
-        final ImageReferenceInner azureImageRef = vmss.storageProfile().imageReference();
+        if (vmss == null) {
+            listener.getLogger().println(Messages.UpdateBuilder_VMSSNotFound(getName()));
+            run.setResult(Result.FAILURE);
+            return;
+        }
 
+        final ImageReferenceInner azureImageRef = vmss.storageProfile().imageReference();
         listener.getLogger().println(
                 Messages.UpdateBuilder_PerformLogCurrentImageReference(printImageReference(azureImageRef)));
 
@@ -109,8 +115,8 @@ public class UpdateBuilder extends BaseBuilder {
             if (StringUtils.isNotBlank(azureCredentialsId)
                     && StringUtils.isNotBlank(resourceGroup)
                     && StringUtils.isNotBlank(name)) {
-                final Azure azure = TokenCache.getInstance(AzureCredentials.getServicePrincipal(azureCredentialsId))
-                        .getAzureClient();
+                final Azure azure = AzureUtils.buildAzureClient(
+                        AzureCredentials.getServicePrincipal(azureCredentialsId));
                 final VirtualMachineScaleSet vmss = azure.virtualMachineScaleSets()
                         .getByResourceGroup(resourceGroup, name);
                 if (vmss == null) {

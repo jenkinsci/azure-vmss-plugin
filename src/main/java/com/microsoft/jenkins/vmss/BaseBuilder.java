@@ -16,7 +16,7 @@ import com.microsoft.azure.management.compute.VirtualMachineScaleSet;
 import com.microsoft.azure.management.resources.ResourceGroup;
 import com.microsoft.azure.util.AzureCredentials;
 import com.microsoft.jenkins.vmss.util.Constants;
-import com.microsoft.jenkins.vmss.util.TokenCache;
+import com.microsoft.jenkins.vmss.util.AzureUtils;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.security.ACL;
@@ -68,8 +68,7 @@ public abstract class BaseBuilder extends Builder implements SimpleBuildStep {
         AzureClientFactory DEFAULT = new AzureClientFactory() {
             @Override
             public Azure createAzureClient(final String credentialsId) {
-                return TokenCache.getInstance(AzureCredentials.getServicePrincipal(credentialsId))
-                        .getAzureClient();
+                return AzureUtils.buildAzureClient(AzureCredentials.getServicePrincipal(credentialsId));
             }
         };
     }
@@ -105,8 +104,8 @@ public abstract class BaseBuilder extends Builder implements SimpleBuildStep {
             final ListBoxModel model = new ListBoxModel(new ListBoxModel.Option(Constants.EMPTY_SELECTION, ""));
 
             if (StringUtils.isNotBlank(azureCredentialsId)) {
-                final Azure azureClient = TokenCache.getInstance(
-                        AzureCredentials.getServicePrincipal(azureCredentialsId)).getAzureClient();
+                final Azure azureClient = AzureUtils.buildAzureClient(
+                        AzureCredentials.getServicePrincipal(azureCredentialsId));
                 for (final ResourceGroup rg : azureClient.resourceGroups().list()) {
                     model.add(rg.name());
                 }
@@ -119,8 +118,8 @@ public abstract class BaseBuilder extends Builder implements SimpleBuildStep {
             final ListBoxModel model = new ListBoxModel(new ListBoxModel.Option(Constants.EMPTY_SELECTION, ""));
 
             if (StringUtils.isNotBlank(azureCredentialsId) && StringUtils.isNotBlank(resourceGroup)) {
-                final Azure azureClient = TokenCache.getInstance(
-                        AzureCredentials.getServicePrincipal(azureCredentialsId)).getAzureClient();
+                final Azure azureClient = AzureUtils.buildAzureClient(
+                        AzureCredentials.getServicePrincipal(azureCredentialsId));
                 final PagedList<VirtualMachineScaleSet> vmssList =
                         azureClient.virtualMachineScaleSets().listByResourceGroup(resourceGroup);
                 for (final VirtualMachineScaleSet vmss : vmssList) {
