@@ -14,6 +14,7 @@ import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -67,6 +68,7 @@ public class UpdateInstancesBuilder extends BaseBuilder {
     }
 
     @Extension
+    @Symbol("azureVMSSUpdateInstances")
     public static class DescriptorImpl extends BaseBuilder.DescriptorImpl {
 
         @Override

@@ -20,6 +20,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -88,6 +89,7 @@ public class UpdateBuilder extends BaseBuilder {
     }
 
     @Extension
+    @Symbol("azureVMSSUpdate")
     public static class DescriptorImpl extends BaseBuilder.DescriptorImpl {
 
         @Override

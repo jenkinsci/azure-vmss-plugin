@@ -40,8 +40,8 @@
 
     <developers>
         <developer>
-            <id>vscjenkins</id>
-            <name>Visual Studio China Jenkins Team</name>
+            <id>azure_devops</id>
+            <name>Azure DevOps Team</name>
             <email>vscjenkins@microsoft.com</email>
         </developer>
     </developers>
@@ -49,7 +49,7 @@
         <connection>scm:git:git://github.com/jenkinsci/azure-vmss-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/azure-vmss-plugin.git</developerConnection>
         <url>http://github.com/jenkinsci/azure-vmss-plugin</url>
-      <tag>HEAD</tag>
+        <tag>HEAD</tag>
   </scm>
     
     <pluginRepositories>
