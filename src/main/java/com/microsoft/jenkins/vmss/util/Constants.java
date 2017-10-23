@@ -20,4 +20,7 @@ public final class Constants {
     // the first option for select element. Keep the same value as jenkins pre-defined default empty value.
     public static final String EMPTY_SELECTION = "- none -";
 
+    public static final String AI_VMSS = "VMSS";
+    public static final String AI_UPDATE_START = "UpdateStart";
+    public static final String AI_UPDATE_INSTANCES_START = "UpdateInstancesStart";
 }

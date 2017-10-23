@@ -7,6 +7,8 @@
 package com.microsoft.jenkins.vmss;
 
 import com.microsoft.azure.management.Azure;
+import com.microsoft.jenkins.azurecommons.telemetry.AppInsightsUtils;
+import com.microsoft.jenkins.vmss.util.Constants;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -56,9 +58,17 @@ public class UpdateInstancesBuilder extends BaseBuilder {
                 resolvedInstanceIds.toString()));
 
         final Azure azure = getAzureClient();
+        final List<String> instanceIdsList = parseInstanceIds(resolvedInstanceIds);
+
+        AzureVMSSPlugin.sendEvent(Constants.AI_VMSS, Constants.AI_UPDATE_INSTANCES_START,
+                "Run", AppInsightsUtils.hash(run.getUrl()),
+                "Subscription", AppInsightsUtils.hash(azure.subscriptionId()),
+                "ResourceGroup", AppInsightsUtils.hash(getResourceGroup()),
+                "Name", AppInsightsUtils.hash(getName()),
+                "InstanceCount", String.valueOf(instanceIdsList.size()));
 
         azure.virtualMachineScaleSets().inner().updateInstances(
-                getResourceGroup(), getName(), parseInstanceIds(resolvedInstanceIds));
+                getResourceGroup(), getName(), instanceIdsList);
 
         listener.getLogger().println(Messages.UpdateInstancesBuilder_PerformLogSuccess());
     }

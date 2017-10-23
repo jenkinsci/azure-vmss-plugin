@@ -10,7 +10,9 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachineScaleSet;
 import com.microsoft.azure.management.compute.implementation.ImageReferenceInner;
 import com.microsoft.azure.util.AzureCredentials;
+import com.microsoft.jenkins.azurecommons.telemetry.AppInsightsUtils;
 import com.microsoft.jenkins.vmss.util.AzureUtils;
+import com.microsoft.jenkins.vmss.util.Constants;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -56,6 +58,12 @@ public class UpdateBuilder extends BaseBuilder {
         listener.getLogger().println(Messages.UpdateBuilder_PerformLogStart());
 
         final Azure azure = getAzureClient();
+
+        AzureVMSSPlugin.sendEvent(Constants.AI_VMSS, Constants.AI_UPDATE_START,
+                "Run", AppInsightsUtils.hash(run.getUrl()),
+                "Subscription", AppInsightsUtils.hash(azure.subscriptionId()),
+                "ResourceGroup", AppInsightsUtils.hash(getResourceGroup()),
+                "Name", AppInsightsUtils.hash(getName()));
 
         final VirtualMachineScaleSet vmss = azure.virtualMachineScaleSets().getByResourceGroup(
                 getResourceGroup(), getName());
