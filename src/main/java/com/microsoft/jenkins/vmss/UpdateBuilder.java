@@ -6,6 +6,7 @@
 
 package com.microsoft.jenkins.vmss;
 
+import com.microsoft.azure.CloudException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachineScaleSet;
 import com.microsoft.azure.management.compute.implementation.ImageReferenceInner;
@@ -82,9 +83,27 @@ public class UpdateBuilder extends BaseBuilder {
         listener.getLogger().println(
                 Messages.UpdateBuilder_PerformLogNewImageReference(printImageReference(azureImageRef)));
 
-        azure.virtualMachineScaleSets().inner().createOrUpdate(getResourceGroup(), getName(), vmss.inner());
+        try {
+            azure.virtualMachineScaleSets().inner().createOrUpdate(getResourceGroup(), getName(), vmss.inner());
 
-        listener.getLogger().println(Messages.UpdateBuilder_PerformLogSuccess());
+            listener.getLogger().println(Messages.UpdateBuilder_PerformLogSuccess());
+
+            AzureVMSSPlugin.sendEvent(Constants.AI_VMSS, Constants.AI_UPDATE_SUCCESS,
+                    "Run", AppInsightsUtils.hash(run.getUrl()),
+                    "Subscription", AppInsightsUtils.hash(azure.subscriptionId()),
+                    "ResourceGroup", AppInsightsUtils.hash(getResourceGroup()),
+                    "Name", AppInsightsUtils.hash(getName()));
+        } catch (CloudException ex) {
+            ex.printStackTrace();
+            run.setResult(Result.FAILURE);
+
+            AzureVMSSPlugin.sendEvent(Constants.AI_VMSS, Constants.AI_UPDATE_FAILED,
+                    "Run", AppInsightsUtils.hash(run.getUrl()),
+                    "Subscription", AppInsightsUtils.hash(azure.subscriptionId()),
+                    "ResourceGroup", AppInsightsUtils.hash(getResourceGroup()),
+                    "Name", AppInsightsUtils.hash(getName()),
+                    "Message", ex.getMessage());
+        }
     }
 
     private String printImageReference(final ImageReferenceInner image) {

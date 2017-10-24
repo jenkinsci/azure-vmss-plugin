@@ -22,5 +22,9 @@ public final class Constants {
 
     public static final String AI_VMSS = "VMSS";
     public static final String AI_UPDATE_START = "UpdateStart";
+    public static final String AI_UPDATE_SUCCESS = "UpdateSuccess";
+    public static final String AI_UPDATE_FAILED = "UpdateFailed";
     public static final String AI_UPDATE_INSTANCES_START = "UpdateInstancesStart";
+    public static final String AI_UPDATE_INSTANCES_SUCCESS = "UpdateInstancesSuccess";
+    public static final String AI_UPDATE_INSTANCES_FAILED = "UpdateInstancesFailed";
 }

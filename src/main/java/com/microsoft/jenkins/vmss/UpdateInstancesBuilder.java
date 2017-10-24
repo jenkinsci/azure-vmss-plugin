@@ -6,6 +6,7 @@
 
 package com.microsoft.jenkins.vmss;
 
+import com.microsoft.azure.CloudException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.jenkins.azurecommons.telemetry.AppInsightsUtils;
 import com.microsoft.jenkins.vmss.util.Constants;
@@ -13,6 +14,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Item;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
@@ -67,10 +69,29 @@ public class UpdateInstancesBuilder extends BaseBuilder {
                 "Name", AppInsightsUtils.hash(getName()),
                 "InstanceCount", String.valueOf(instanceIdsList.size()));
 
-        azure.virtualMachineScaleSets().inner().updateInstances(
-                getResourceGroup(), getName(), instanceIdsList);
+        try {
+            azure.virtualMachineScaleSets().inner().updateInstances(
+                    getResourceGroup(), getName(), instanceIdsList);
 
-        listener.getLogger().println(Messages.UpdateInstancesBuilder_PerformLogSuccess());
+            listener.getLogger().println(Messages.UpdateInstancesBuilder_PerformLogSuccess());
+
+            AzureVMSSPlugin.sendEvent(Constants.AI_VMSS, Constants.AI_UPDATE_INSTANCES_SUCCESS,
+                    "Run", AppInsightsUtils.hash(run.getUrl()),
+                    "Subscription", AppInsightsUtils.hash(azure.subscriptionId()),
+                    "ResourceGroup", AppInsightsUtils.hash(getResourceGroup()),
+                    "Name", AppInsightsUtils.hash(getName()));
+
+        } catch (CloudException ex) {
+            ex.printStackTrace();
+            run.setResult(Result.FAILURE);
+
+            AzureVMSSPlugin.sendEvent(Constants.AI_VMSS, Constants.AI_UPDATE_INSTANCES_FAILED,
+                    "Run", AppInsightsUtils.hash(run.getUrl()),
+                    "Subscription", AppInsightsUtils.hash(azure.subscriptionId()),
+                    "ResourceGroup", AppInsightsUtils.hash(getResourceGroup()),
+                    "Name", AppInsightsUtils.hash(getName()),
+                    "Message", ex.getMessage());
+        }
     }
 
     static List<String> parseInstanceIds(final String instanceIdsText) {
