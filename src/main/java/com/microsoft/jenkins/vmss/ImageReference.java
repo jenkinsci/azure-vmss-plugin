@@ -88,8 +88,13 @@ public class ImageReference implements Describable<ImageReference> {
     }
 
     @Override
-    public DescriptorImpl getDescriptor() {
-        return (DescriptorImpl) Jenkins.getInstance().getDescriptorByType(DescriptorImpl.class);
+    public Descriptor<ImageReference> getDescriptor() {
+        Jenkins jenkins = Jenkins.getInstance();
+        if (jenkins != null) {
+            return jenkins.getDescriptor(getClass());
+        } else {
+            return null;
+        }
     }
 
     @Extension
