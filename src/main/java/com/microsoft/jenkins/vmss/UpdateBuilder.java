@@ -94,7 +94,7 @@ public class UpdateBuilder extends BaseBuilder {
                     "ResourceGroup", AppInsightsUtils.hash(getResourceGroup()),
                     "Name", AppInsightsUtils.hash(getName()));
         } catch (CloudException ex) {
-            ex.printStackTrace();
+            ex.printStackTrace(listener.getLogger());
             run.setResult(Result.FAILURE);
 
             AzureVMSSPlugin.sendEvent(Constants.AI_VMSS, Constants.AI_UPDATE_FAILED,
