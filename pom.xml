@@ -15,7 +15,7 @@
     </parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>azure-vmss</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <properties>
@@ -30,7 +30,7 @@
 
     <name>Azure Virtual Machine Scale Set Plugin</name>
     <description>A Jenkins plugin to deploy to Azure Virtual Machine Scale Set</description>
-    <url>https://wiki.jenkins-ci.org/display/JENKINS/Azure+VMSS+Plugin</url>
+    <url>https://wiki.jenkins-ci.org/display/JENKINS/Azure+Virtual+Machine+Scale+Set+Plugin</url>
 
     <licenses>
         <license>
@@ -137,6 +137,27 @@
     </repositories>
     
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.20.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>ThirdPartyNotices.txt</include>
+                    <include>LICENSE.txt</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.jenkins-ci.tools</groupId>
@@ -182,7 +203,7 @@
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
-                    <resourceIncludes>**/*.properties,**/*.jelly,**/*.html</resourceIncludes>
+                    <resourceIncludes>src/main/resources/**</resourceIncludes>
                 </configuration>
             </plugin>
         </plugins>

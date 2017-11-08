@@ -1,10 +1,10 @@
-# Azure Virtual Machine Scale Sets Plugin
+# Azure Virtual Machine Scale Set Plugin
 
 A Jenkins plugin to deploy VM images to Azure Virtual Machine Scale Sets (VMSS).
 
 ## How to Install
 
-You can install/update this plugin in Jenkins update center (Manage Jenkins -> Manage Plugins, search Azure VMSS Plugin).
+You can install/update this plugin in Jenkins update center (Manage Jenkins -> Manage Plugins, search Azure Virtual Machine Scale Set Plugin).
 
 You can also manually install the plugin if you want to try the latest feature before it's officially released.
 To manually install the plugin:
@@ -70,6 +70,6 @@ For advanced options, you can use Jenkins Pipeline Syntax tool to generate a sam
 
 ## Data/Telemetry
 
-Azure VMSS Plugin collects usage data and sends it to Microsoft to help improve our products and services. Read our [privacy statement](http://go.microsoft.com/fwlink/?LinkId=521839) to learn more.
+Azure Virtual Machine Scale Set Plugin collects usage data and sends it to Microsoft to help improve our products and services. Read our [privacy statement](http://go.microsoft.com/fwlink/?LinkId=521839) to learn more.
 
 You can turn off usage data collection in Manage Jenkins -> Configure System -> Azure -> Help make Azure Jenkins plugins better by sending anonymous usage statistics to Azure Application Insights.
