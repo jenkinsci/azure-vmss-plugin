@@ -15,7 +15,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class AzureUtilsTest {
 
@@ -29,7 +30,7 @@ public class AzureUtilsTest {
     }
 
     @Test
-    public void fromServicePrincipal() throws NoSuchFieldException, IllegalAccessException {
+    public void fromServicePrincipal() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         final AzureCredentials.ServicePrincipal sp = new AzureCredentials.ServicePrincipal(
                 "sub",
                 "client",
@@ -42,13 +43,13 @@ public class AzureUtilsTest {
         );
         final ApplicationTokenCredentials token = AzureUtils.fromServicePrincipal(sp);
         final AzureEnvironment env = token.environment();
-        final Field secretField = token.getClass().getDeclaredField("secret");
-        secretField.setAccessible(true);
-        Assert.assertEquals("secret", (String)secretField.get(token));
+        final Method secretMethod = token.getClass().getDeclaredMethod("clientSecret");
+        secretMethod.setAccessible(true);
+        Assert.assertEquals("secret", secretMethod.invoke(token));
         Assert.assertEquals("client", token.clientId());
         Assert.assertEquals("tenant", token.domain());
         Assert.assertEquals("management", env.managementEndpoint());
-        Assert.assertEquals("auth", env.activeDirectoryEndpoint());
+        Assert.assertEquals("auth/", env.activeDirectoryEndpoint());
         Assert.assertEquals("rm", env.resourceManagerEndpoint());
         Assert.assertEquals("graph", env.graphEndpoint());
     }
