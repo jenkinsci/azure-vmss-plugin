@@ -7,14 +7,8 @@
 package com.microsoft.jenkins.vmss;
 
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.compute.VirtualMachineScaleSet;
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetStorageProfile;
-import com.microsoft.azure.management.compute.VirtualMachineScaleSetVMProfile;
 import com.microsoft.azure.management.compute.VirtualMachineScaleSets;
-import com.microsoft.azure.management.compute.implementation.ImageReferenceInner;
-import com.microsoft.azure.management.compute.implementation.VirtualMachineScaleSetInner;
 import com.microsoft.azure.management.compute.implementation.VirtualMachineScaleSetsInner;
-import edu.emory.mathcs.backport.java.util.Arrays;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -27,13 +21,11 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,6 +71,6 @@ public class UpdateInstancesBuilderTest {
         final ArgumentCaptor<List<String>> instanceIdsArg = ArgumentCaptor.forClass(List.class);
         verify(azure.virtualMachineScaleSets().inner()).updateInstances(
                 eq("rg"), eq("name"), instanceIdsArg.capture());
-        Assert.assertEquals(Arrays.asList(new String[]{"1", "2", "3", "4", "5"}), instanceIdsArg.getValue());
+        Assert.assertEquals(Arrays.asList("1", "2", "3", "4", "5"), instanceIdsArg.getValue());
     }
 }
