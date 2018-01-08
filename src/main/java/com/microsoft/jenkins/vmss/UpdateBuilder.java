@@ -10,7 +10,6 @@ import com.microsoft.azure.CloudException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachineScaleSet;
 import com.microsoft.azure.management.compute.implementation.ImageReferenceInner;
-import com.microsoft.azure.util.AzureCredentials;
 import com.microsoft.jenkins.azurecommons.telemetry.AppInsightsUtils;
 import com.microsoft.jenkins.vmss.util.AzureUtils;
 import com.microsoft.jenkins.vmss.util.Constants;
@@ -144,8 +143,7 @@ public class UpdateBuilder extends BaseBuilder {
             if (StringUtils.isNotBlank(azureCredentialsId)
                     && StringUtils.isNotBlank(resourceGroup)
                     && StringUtils.isNotBlank(name)) {
-                final Azure azure = AzureUtils.buildAzureClient(
-                        AzureCredentials.getServicePrincipal(azureCredentialsId));
+                final Azure azure = AzureUtils.buildClient(azureCredentialsId);
                 final VirtualMachineScaleSet vmss = azure.virtualMachineScaleSets()
                         .getByResourceGroup(resourceGroup, name);
                 if (vmss == null) {

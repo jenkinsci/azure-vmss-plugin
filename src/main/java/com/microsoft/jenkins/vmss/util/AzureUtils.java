@@ -5,14 +5,12 @@
  */
 package com.microsoft.jenkins.vmss.util;
 
-import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.util.AzureCredentials;
+import com.microsoft.azure.util.AzureBaseCredentials;
+import com.microsoft.azure.util.AzureCredentialUtil;
+import com.microsoft.jenkins.azurecommons.core.AzureClientFactory;
+import com.microsoft.jenkins.azurecommons.core.credentials.TokenCredentialData;
 import com.microsoft.jenkins.vmss.AzureVMSSPlugin;
-import jenkins.model.Jenkins;
-
-import java.util.HashMap;
 
 public final class AzureUtils {
 
@@ -20,57 +18,29 @@ public final class AzureUtils {
         // Hide
     }
 
-    static String getUserAgent() {
-        String version = null;
-        String instanceId = null;
-        try {
-            version = AzureUtils.class.getPackage().getImplementationVersion();
-            Jenkins inst = Jenkins.getInstance();
-            if (inst != null) {
-                instanceId = inst.getLegacyInstanceId();
-            }
-        } catch (Exception e) {
+    static TokenCredentialData getToken(String credentialsId) {
+        AzureBaseCredentials credential = AzureCredentialUtil.getCredential2(credentialsId);
+        if (credential == null) {
+            throw new IllegalStateException("Can't find credential with id: " + credentialsId);
         }
-
-        if (version == null) {
-            version = "local";
-        }
-        if (instanceId == null) {
-            instanceId = "local";
-        }
-
-        return Constants.PLUGIN_NAME + "/" + version + "/" + instanceId;
+        return TokenCredentialData.deserialize(credential.serializeToTokenData());
     }
 
-    static ApplicationTokenCredentials fromServicePrincipal(
-            final AzureCredentials.ServicePrincipal servicePrincipal) {
-        final AzureEnvironment env = new AzureEnvironment(new HashMap<String, String>() {
-            {
-                this.put(AzureEnvironment.Endpoint.MANAGEMENT.toString(),
-                        servicePrincipal.getServiceManagementURL());
-                this.put(AzureEnvironment.Endpoint.RESOURCE_MANAGER.toString(),
-                        servicePrincipal.getResourceManagerEndpoint());
-                this.put(AzureEnvironment.Endpoint.ACTIVE_DIRECTORY.toString(),
-                        servicePrincipal.getAuthenticationEndpoint());
-                this.put(AzureEnvironment.Endpoint.GRAPH.toString(),
-                        servicePrincipal.getGraphEndpoint());
+    public static Azure buildClient(String credentialsId) {
+        TokenCredentialData token = getToken(credentialsId);
+        return buildClient(token);
+    }
+
+    public static Azure buildClient(TokenCredentialData token) {
+        return AzureClientFactory.getClient(token, new AzureClientFactory.Configurer() {
+            @Override
+            public Azure.Configurable configure(Azure.Configurable configurable) {
+                return configurable
+                        .withLogLevel(Constants.DEFAULT_AZURE_SDK_LOGGING_LEVEL)
+                        .withInterceptor(new AzureVMSSPlugin.AzureTelemetryInterceptor())
+                        .withUserAgent(AzureClientFactory.getUserAgent(
+                                Constants.PLUGIN_NAME, AzureUtils.class.getPackage().getImplementationVersion()));
             }
         });
-        return new ApplicationTokenCredentials(
-                servicePrincipal.getClientId(),
-                servicePrincipal.getTenant(),
-                servicePrincipal.getClientSecret(),
-                env
-        );
-    }
-
-    public static Azure buildAzureClient(final AzureCredentials.ServicePrincipal servicePrincipal) {
-        return Azure
-                .configure()
-                .withInterceptor(new AzureVMSSPlugin.AzureTelemetryInterceptor())
-                .withLogLevel(Constants.DEFAULT_AZURE_SDK_LOGGING_LEVEL)
-                .withUserAgent(getUserAgent())
-                .authenticate(fromServicePrincipal(servicePrincipal))
-                .withSubscription(servicePrincipal.getSubscriptionId());
     }
 }
