@@ -6,17 +6,15 @@
 
 package com.microsoft.jenkins.vmss;
 
-import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
-import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachineScaleSet;
 import com.microsoft.azure.management.resources.ResourceGroup;
-import com.microsoft.azure.util.AzureCredentials;
-import com.microsoft.jenkins.vmss.util.Constants;
+import com.microsoft.azure.util.AzureBaseCredentials;
 import com.microsoft.jenkins.vmss.util.AzureUtils;
+import com.microsoft.jenkins.vmss.util.Constants;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.security.ACL;
@@ -26,8 +24,6 @@ import hudson.tasks.Builder;
 import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.Collections;
 
 public abstract class BaseBuilder extends Builder implements SimpleBuildStep {
 
@@ -68,7 +64,7 @@ public abstract class BaseBuilder extends Builder implements SimpleBuildStep {
         AzureClientFactory DEFAULT = new AzureClientFactory() {
             @Override
             public Azure createAzureClient(final String credentialsId) {
-                return AzureUtils.buildAzureClient(AzureCredentials.getServicePrincipal(credentialsId));
+                return AzureUtils.buildClient(credentialsId);
             }
         };
     }
@@ -93,21 +89,28 @@ public abstract class BaseBuilder extends Builder implements SimpleBuildStep {
         }
 
         protected ListBoxModel listAzureCredentialsIdItems(final Item owner) {
-            return new StandardListBoxModel()
-                    .withEmptySelection()
-                    .withAll(CredentialsProvider.lookupCredentials(
-                            AzureCredentials.class, owner, ACL.SYSTEM, Collections.<DomainRequirement>emptyList()
-                    ));
+            StandardListBoxModel model = new StandardListBoxModel();
+            model.includeEmptyValue();
+            model.includeAs(ACL.SYSTEM, owner, AzureBaseCredentials.class);
+            return model;
         }
 
         protected ListBoxModel listResourceGroupItems(final String azureCredentialsId) {
             final ListBoxModel model = new ListBoxModel(new ListBoxModel.Option(Constants.EMPTY_SELECTION, ""));
 
             if (StringUtils.isNotBlank(azureCredentialsId)) {
-                final Azure azureClient = AzureUtils.buildAzureClient(
-                        AzureCredentials.getServicePrincipal(azureCredentialsId));
-                for (final ResourceGroup rg : azureClient.resourceGroups().list()) {
-                    model.add(rg.name());
+                final Azure azureClient = AzureUtils.buildClient(azureCredentialsId);
+                try {
+                    for (final ResourceGroup rg : azureClient.resourceGroups().list()) {
+                        model.add(rg.name());
+                    }
+                } catch (Exception ex) {
+                    // If the credential selected is an MSI, and the MSI is not granted access to any of the resource
+                    // groups, we will get exception on resource group listing with the message
+                    //     "Parameter this.client.subscriptionId() is required and cannot be null"
+                    // However, this message is a bit misleading. So we wrap the error message a bit and this will
+                    // also cover other exceptions raised during the resource group listing.
+                    model.add(Messages.BaseBuilder_FailedToLoadResourceGroups(ex.getMessage()), "");
                 }
             }
 
@@ -118,12 +121,20 @@ public abstract class BaseBuilder extends Builder implements SimpleBuildStep {
             final ListBoxModel model = new ListBoxModel(new ListBoxModel.Option(Constants.EMPTY_SELECTION, ""));
 
             if (StringUtils.isNotBlank(azureCredentialsId) && StringUtils.isNotBlank(resourceGroup)) {
-                final Azure azureClient = AzureUtils.buildAzureClient(
-                        AzureCredentials.getServicePrincipal(azureCredentialsId));
-                final PagedList<VirtualMachineScaleSet> vmssList =
-                        azureClient.virtualMachineScaleSets().listByResourceGroup(resourceGroup);
-                for (final VirtualMachineScaleSet vmss : vmssList) {
-                    model.add(vmss.name());
+                final Azure azureClient = AzureUtils.buildClient(azureCredentialsId);
+                try {
+                    final PagedList<VirtualMachineScaleSet> vmssList =
+                            azureClient.virtualMachineScaleSets().listByResourceGroup(resourceGroup);
+                    for (final VirtualMachineScaleSet vmss : vmssList) {
+                        model.add(vmss.name());
+                    }
+                } catch (Exception ex) {
+                    // If the credential previously configured is an MSI, and we revoked all the resource group access
+                    // after we saved the configuration, we will get an exception when we open the configure page again,
+                    // with the message:
+                    //     "Parameter this.client.subscriptionId() is required and cannot be null"
+                    // This is similar to resource group listing in #listResourceGroupItems and we wrap similarly.
+                    model.add(Messages.BaseBuilder_FailedToLoadVMSSItems(ex.getMessage()), "");
                 }
             }
 
