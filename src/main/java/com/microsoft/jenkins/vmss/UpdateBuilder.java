@@ -26,7 +26,6 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -57,7 +56,7 @@ public class UpdateBuilder extends BaseBuilder {
 
         listener.getLogger().println(Messages.UpdateBuilder_PerformLogStart());
 
-        final Azure azure = getAzureClient();
+        final Azure azure = getAzureClient(run.getParent());
 
         AzureVMSSPlugin.sendEvent(Constants.AI_VMSS, Constants.AI_UPDATE_START,
                 "Run", AppInsightsUtils.hash(run.getUrl()),
@@ -123,35 +122,37 @@ public class UpdateBuilder extends BaseBuilder {
             return Messages.UpdateBuilder_DisplayName();
         }
 
-        public ListBoxModel doFillAzureCredentialsIdItems(@AncestorInPath final Item owner) {
+        public ListBoxModel doFillAzureCredentialsIdItems(@AncestorInPath Item owner) {
             return listAzureCredentialsIdItems(owner);
         }
 
-        public ListBoxModel doFillResourceGroupItems(@QueryParameter final String azureCredentialsId) {
-            return listResourceGroupItems(azureCredentialsId);
+        public ListBoxModel doFillResourceGroupItems(@AncestorInPath Item owner,
+                                                     @QueryParameter String azureCredentialsId) {
+            return listResourceGroupItems(owner, azureCredentialsId);
         }
 
-        public ListBoxModel doFillNameItems(@QueryParameter final String azureCredentialsId,
-                                            @QueryParameter final String resourceGroup) {
-            return listVMSSItems(azureCredentialsId, resourceGroup);
+        public ListBoxModel doFillNameItems(@AncestorInPath Item owner,
+                                            @QueryParameter String azureCredentialsId,
+                                            @QueryParameter String resourceGroup) {
+            return listVMSSItems(owner, azureCredentialsId, resourceGroup);
         }
 
-        @JavaScriptMethod
-        public boolean isCustomImage(final String azureCredentialsId,
-                                     final String resourceGroup,
-                                     final String name) {
+        public String doIsCustomImage(@AncestorInPath Item owner,
+                                      @QueryParameter String azureCredentialsId,
+                                      @QueryParameter String resourceGroup,
+                                      @QueryParameter String name) {
             if (StringUtils.isNotBlank(azureCredentialsId)
                     && StringUtils.isNotBlank(resourceGroup)
                     && StringUtils.isNotBlank(name)) {
-                final Azure azure = AzureUtils.buildClient(azureCredentialsId);
+                final Azure azure = AzureUtils.buildClient(owner, azureCredentialsId);
                 final VirtualMachineScaleSet vmss = azure.virtualMachineScaleSets()
                         .getByResourceGroup(resourceGroup, name);
                 if (vmss == null) {
-                    return false;
+                    return "false";
                 }
-                return StringUtils.isNotBlank(vmss.storageProfile().imageReference().id());
+                return String.valueOf(StringUtils.isNotBlank(vmss.storageProfile().imageReference().id()));
             }
-            return false;
+            return "false";
         }
     }
 

@@ -17,6 +17,7 @@ import com.microsoft.azure.management.compute.implementation.VirtualMachineScale
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.junit.Assert;
@@ -77,7 +78,7 @@ public class UpdateBuilderTest {
         final Azure azure = mockAzure(azureImageReference);
         builder.setAzureClientFactory(new BaseBuilder.AzureClientFactory() {
             @Override
-            public Azure createAzureClient(String azureCredentialsId) {
+            public Azure createAzureClient(Item owner, String azureCredentialsId) {
                 return azure;
             }
         });

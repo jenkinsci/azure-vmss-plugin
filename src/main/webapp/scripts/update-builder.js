@@ -26,6 +26,7 @@
 
         // Select appropriate image type according to VMSS profile
         function selectImageType() {
+            var checkUrl = nameEl.getAttribute("data-check-url");
             var builderTBody = findAncestor(nameEl, 'TBODY');
             if (!builderTBody)
                 return;
@@ -34,25 +35,37 @@
             var azureCredentialsId = credentialsEl ? credentialsEl.value : null;
             var resourceGroup = resourceGroupEl ? resourceGroupEl.value : null;
 
-            var imageTypeOfficialEl = findNext(nameEl, function(e) { return e.tagName = 'INPUT' && e.value=='official'; });
-            var imageTypeCustomEl = findNext(nameEl, function(e) { return e.tagName = 'INPUT' && e.value=='custom'; });
+            var imageTypeOfficialEl = findNext(nameEl, function(e) { return e.tagName === 'INPUT' && e.value === 'official'; });
+            var imageTypeCustomEl = findNext(nameEl, function(e) { return e.tagName === 'INPUT' && e.value === 'custom'; });
 
-            if (name && resourceGroup && azureCredentialsId) {
+            if (name && resourceGroup && azureCredentialsId && checkUrl) {
                 spinnerEl.style.display = '';
 
-                azureVMSSUpdateBuilderDescriptor.isCustomImage(azureCredentialsId, resourceGroup, name, function(t) {
-                    spinnerEl.style.display = 'none';
+                var config = {
+                    parameters: {
+                        azureCredentialsId: azureCredentialsId,
+                        resourceGroup: resourceGroup,
+                        name: name
+                    },
+                    onSuccess: function(rsp) {
+                        console.log(rsp);
+                        spinnerEl.style.display = 'none';
 
-                    var isCustomImage = t.responseObject();
-                    var enabledEl = isCustomImage ? imageTypeCustomEl : imageTypeOfficialEl;
-                    var disabledEl = !isCustomImage ? imageTypeCustomEl : imageTypeOfficialEl;
+                        var isCustomImage = rsp.responseText === "true";
+                        var enabledEl = isCustomImage ? imageTypeCustomEl : imageTypeOfficialEl;
+                        var disabledEl = !isCustomImage ? imageTypeCustomEl : imageTypeOfficialEl;
 
-                    disabledEl.disabled = true;
-                    enabledEl.disabled = false;
-                    enabledEl.checked = true;
+                        disabledEl.disabled = true;
+                        enabledEl.disabled = false;
+                        enabledEl.checked = true;
 
-                    enabledEl.form.radios['imageType'].updateButtons();
-                });
+                        enabledEl.form.radios['imageType'].updateButtons();
+                    },
+                    onFailure: function(rsp) {
+                        console.log(rsp);
+                    }
+                };
+                new Ajax.Request(checkUrl, config);
             }
         }
 
