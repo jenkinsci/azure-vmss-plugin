@@ -59,21 +59,21 @@ public abstract class BaseBuilder extends Builder implements SimpleBuildStep {
     }
 
     interface AzureClientFactory {
-        Azure createAzureClient(final String credentialsId);
+        Azure createAzureClient(Item owner, String credentialsId);
 
         AzureClientFactory DEFAULT = new AzureClientFactory() {
             @Override
-            public Azure createAzureClient(final String credentialsId) {
-                return AzureUtils.buildClient(credentialsId);
+            public Azure createAzureClient(Item owner, String credentialsId) {
+                return AzureUtils.buildClient(owner, credentialsId);
             }
         };
     }
 
-    protected Azure getAzureClient() {
+    protected Azure getAzureClient(Item owner) {
         if (azureClientFactory != null) {
-            return azureClientFactory.createAzureClient(getAzureCredentialsId());
+            return azureClientFactory.createAzureClient(owner, getAzureCredentialsId());
         } else {
-            return AzureClientFactory.DEFAULT.createAzureClient(getAzureCredentialsId());
+            return AzureClientFactory.DEFAULT.createAzureClient(owner, getAzureCredentialsId());
         }
     }
 
@@ -88,18 +88,19 @@ public abstract class BaseBuilder extends Builder implements SimpleBuildStep {
             return true;
         }
 
-        protected ListBoxModel listAzureCredentialsIdItems(final Item owner) {
+        protected ListBoxModel listAzureCredentialsIdItems(Item owner) {
             StandardListBoxModel model = new StandardListBoxModel();
             model.includeEmptyValue();
             model.includeAs(ACL.SYSTEM, owner, AzureBaseCredentials.class);
             return model;
         }
 
-        protected ListBoxModel listResourceGroupItems(final String azureCredentialsId) {
+        protected ListBoxModel listResourceGroupItems(Item owner,
+                                                      String azureCredentialsId) {
             final ListBoxModel model = new ListBoxModel(new ListBoxModel.Option(Constants.EMPTY_SELECTION, ""));
 
             if (StringUtils.isNotBlank(azureCredentialsId)) {
-                final Azure azureClient = AzureUtils.buildClient(azureCredentialsId);
+                final Azure azureClient = AzureUtils.buildClient(owner, azureCredentialsId);
                 try {
                     for (final ResourceGroup rg : azureClient.resourceGroups().list()) {
                         model.add(rg.name());
@@ -117,11 +118,11 @@ public abstract class BaseBuilder extends Builder implements SimpleBuildStep {
             return model;
         }
 
-        protected ListBoxModel listVMSSItems(final String azureCredentialsId, final String resourceGroup) {
+        protected ListBoxModel listVMSSItems(Item owner, String azureCredentialsId, String resourceGroup) {
             final ListBoxModel model = new ListBoxModel(new ListBoxModel.Option(Constants.EMPTY_SELECTION, ""));
 
             if (StringUtils.isNotBlank(azureCredentialsId) && StringUtils.isNotBlank(resourceGroup)) {
-                final Azure azureClient = AzureUtils.buildClient(azureCredentialsId);
+                final Azure azureClient = AzureUtils.buildClient(owner, azureCredentialsId);
                 try {
                     final PagedList<VirtualMachineScaleSet> vmssList =
                             azureClient.virtualMachineScaleSets().listByResourceGroup(resourceGroup);

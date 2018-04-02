@@ -59,7 +59,7 @@ public class UpdateInstancesBuilder extends BaseBuilder {
         listener.getLogger().println(Messages.UpdateInstancesBuilder_PerformLogInstanceIDs(
                 resolvedInstanceIds.toString()));
 
-        final Azure azure = getAzureClient();
+        final Azure azure = getAzureClient(run.getParent());
         final List<String> instanceIdsList = parseInstanceIds(resolvedInstanceIds);
 
         AzureVMSSPlugin.sendEvent(Constants.AI_VMSS, Constants.AI_UPDATE_INSTANCES_START,
@@ -111,13 +111,15 @@ public class UpdateInstancesBuilder extends BaseBuilder {
             return listAzureCredentialsIdItems(owner);
         }
 
-        public ListBoxModel doFillResourceGroupItems(@QueryParameter final String azureCredentialsId) {
-            return listResourceGroupItems(azureCredentialsId);
+        public ListBoxModel doFillResourceGroupItems(@AncestorInPath Item owner,
+                                                     @QueryParameter final String azureCredentialsId) {
+            return listResourceGroupItems(owner, azureCredentialsId);
         }
 
-        public ListBoxModel doFillNameItems(@QueryParameter final String azureCredentialsId,
+        public ListBoxModel doFillNameItems(@AncestorInPath Item owner,
+                                            @QueryParameter final String azureCredentialsId,
                                             @QueryParameter final String resourceGroup) {
-            return listVMSSItems(azureCredentialsId, resourceGroup);
+            return listVMSSItems(owner, azureCredentialsId, resourceGroup);
         }
     }
 }

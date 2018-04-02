@@ -11,6 +11,7 @@ import com.microsoft.azure.util.AzureCredentialUtil;
 import com.microsoft.jenkins.azurecommons.core.AzureClientFactory;
 import com.microsoft.jenkins.azurecommons.core.credentials.TokenCredentialData;
 import com.microsoft.jenkins.vmss.AzureVMSSPlugin;
+import hudson.model.Item;
 
 public final class AzureUtils {
 
@@ -18,16 +19,17 @@ public final class AzureUtils {
         // Hide
     }
 
-    static TokenCredentialData getToken(String credentialsId) {
-        AzureBaseCredentials credential = AzureCredentialUtil.getCredential2(credentialsId);
+    static TokenCredentialData getToken(Item owner, String credentialsId) {
+        AzureBaseCredentials credential = AzureCredentialUtil.getCredential(owner, credentialsId);
         if (credential == null) {
-            throw new IllegalStateException("Can't find credential with id: " + credentialsId);
+            throw new IllegalStateException(
+                    String.format("Can't find credential in scope %s with id: %s", owner, credentialsId));
         }
         return TokenCredentialData.deserialize(credential.serializeToTokenData());
     }
 
-    public static Azure buildClient(String credentialsId) {
-        TokenCredentialData token = getToken(credentialsId);
+    public static Azure buildClient(Item owner, String credentialsId) {
+        TokenCredentialData token = getToken(owner, credentialsId);
         return buildClient(token);
     }
 
