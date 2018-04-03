@@ -1,5 +1,8 @@
 # Azure Virtual Machine Scale Set Plugin Changelog
 
+## Version 0.2.1, 2018-04-03
+* Support for credentials lookup in [Folders](https://plugins.jenkins.io/cloudbees-folder)
+
 ## Version 0.2.0, 2018-01-09
 * Support MSI credentials
 
