@@ -1,5 +1,52 @@
 # Azure Virtual Machine Scale Set Plugin
 
+> ***Important***: This plugin is being retired and will be out of support as of February 29, 2024. Azure CLI is the currently recommended way to integrate Jenkins with Azure services.
+
+## Using Credentials Binding and Az CLI
+
+[Credentials Binding](https://plugins.jenkins.io/credentials-binding/) and Az CLI is the recommended way to integrate with Azure services.
+
+1. Make sure you have [Az CLI installed](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli), version 2.0.67 or higher.
+2. Create a service principal using Az CLI:
+
+    ```bash
+        az ad sp create-for-rbac
+    ```
+
+3. Make sure the [Credentials plugin](https://plugins.jenkins.io/credentials/) is installed and add a credential in Jenkins Credentials page.
+
+   Ensure that the credential kind is ***Username with password*** and enter the following items:
+    * Username - The ***appId*** of the service principal created.
+    * Password - The ***password*** of the service principal created.
+    * ID - Credential identifier such as AzureServicePrincipal
+
+   Sample Jenkinsfile (declarative pipeline)
+
+    ```groovy
+    pipeline {
+        agent any
+
+        environment {
+            AZURE_SUBSCRIPTION_ID='99999999-9999-9999-9999-999999999999'
+            AZURE_TENANT_ID='99999999-9999-9999-9999-999999999999'
+        }
+
+        stages {
+            stage('Example') {
+                steps {
+                       withCredentials([usernamePassword(credentialsId: 'myAzureCredential', passwordVariable: 'AZURE_CLIENT_SECRET', usernameVariable: 'AZURE_CLIENT_ID')]) {
+                                sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t $AZURE_TENANT_ID'
+                                sh 'az account set -s $AZURE_SUBSCRIPTION_ID'
+                                sh 'az vmss update --resource-group <myVMSSResourceGroup> --name <myVmScaleSet> --set virtualMachineProfile.storageProfile.imageReference.id=/subscriptions/$AZURE_SUBSCRIPTION_ID>/resourceGroups/<myVMSSResourceGroup>/providers/Microsoft.Compute/galleries/<myVMSSGallery>/images/MyImage/versions/0.0.<BuildId>'
+                            }
+                }
+            }
+        }
+    }
+    ```
+
+---
+
 A Jenkins plugin to deploy VM images to Azure Virtual Machine Scale Sets (VMSS).
 
 ## How to Install
@@ -37,11 +84,11 @@ Usually you can organize your deploy process into two steps:
 
 * Update Scale Sets
 
-    This step updates image setting for specific Virtual Machine Scale Sets. Once finished, newly created virtual machines will be provisioned with the new image. Currently running machines are not affected.
-    
+  This step updates image setting for specific Virtual Machine Scale Sets. Once finished, newly created virtual machines will be provisioned with the new image. Currently running machines are not affected.
+
 * Update Instances
 
-    This step updates specific instances using the latest image setting of the scale sets. Instances will be stopped and re-created with the new image.
+  This step updates specific instances using the latest image setting of the scale sets. Instances will be stopped and re-created with the new image.
 
 ### Pipeline
 
@@ -52,18 +99,18 @@ To update scale sets:
 ```groovy
 // Update with official image
 azureVMSSUpdate azureCredentialsId: '<credential_id>', resourceGroup: '<resource_group_name>', name: '<name>',
-                imageReference: [offer: 'UbuntuServer', publisher: 'Canonical', sku: '16.04-LTS', version: 'latest']
+        imageReference: [offer: 'UbuntuServer', publisher: 'Canonical', sku: '16.04-LTS', version: 'latest']
 
 // Update with custom image
 azureVMSSUpdate azureCredentialsId: '<credential_id>', resourceGroup: '<resource_group_name>', name: '<name>',
-                imageReference: [id: '/subscriptions/<subscription>/resourceGroups/<resource_group_name>/providers/Microsoft.Compute/images/<image_name>']
+        imageReference: [id: '/subscriptions/<subscription>/resourceGroups/<resource_group_name>/providers/Microsoft.Compute/images/<image_name>']
 ```
 
 To update instances:
 
 ```groovy
 azureVMSSUpdateInstances azureCredentialsId: '<credential_id>', resourceGroup: '<resource_group_name>', name: '<name>',
-                         instanceIds: '1,2,3'
+        instanceIds: '1,2,3'
 ```
 
 For advanced options, you can use Jenkins Pipeline Syntax tool to generate a sample script.
