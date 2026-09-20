@@ -1,6 +1,6 @@
 # Azure Virtual Machine Scale Set Plugin
 
-> ***Important***: This plugin is deprecated and out of support as of February 29, 2024. Azure CLI is the currently recommended way to integrate Jenkins with Azure services.
+> ***Important***: This plugin is deprecated and unsupported. Use the Azure CLI to integrate Jenkins with Azure services.
 
 ## Using Credentials Binding and Az CLI
 
